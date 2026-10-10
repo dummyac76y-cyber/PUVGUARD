@@ -138,7 +138,15 @@ export default function LiveMap({ points, onSelect, height = 440 }: Props) {
       el.className = 'geo-marker geo-marker-' + point.kind;
       el.title = point.label;
       el.setAttribute('aria-label', 'Select map marker: ' + point.label);
-      el.innerHTML = point.kind === 'responder' ? 'R' : point.kind === 'unit' ? 'V' : '!';
+      if (point.kind === 'unit') {
+        el.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.8-4.2A2 2 0 0 1 8.7 5.5h6.6a2 2 0 0 1 1.9 1.3L19 11"/><path d="M4.5 11h15A1.5 1.5 0 0 1 21 12.5v4A1.5 1.5 0 0 1 19.5 18h-15A1.5 1.5 0 0 1 3 16.5v-4A1.5 1.5 0 0 1 4.5 11Z"/><path d="M6 18v1.5M18 18v1.5M6.5 14.5h.01M17.5 14.5h.01"/></svg>';
+      } else if (point.kind === 'responder') {
+        el.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-3.8 7-10V5l-7-3-7 3v6c0 6.2 7 10 7 10Z"/><path d="M12 7v8M8 11h8"/></svg>';
+      } else if (point.kind === 'critical') {
+        el.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg>';
+      } else {
+        el.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M12 8v5M12 16h.01"/></svg>';
+      }
       el.addEventListener('click', () => onSelect?.(point.id));
       const popupContent = document.createElement('div');
       const title = document.createElement('strong');
