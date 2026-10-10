@@ -2237,3 +2237,32 @@ tbody tr.selected-row { background: linear-gradient(90deg, rgba(25, 177, 153, .1
   body::before, .geo-marker-critical { animation: none !important; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Final command-console details */
+.shell { position: relative; z-index: 1; }
+body::before { z-index: 0; }
+.mission-clock {
+  display: flex; align-items: center; gap: 7px; color: #b4c9e2;
+  padding: 7px 10px; border: 1px solid rgba(126, 166, 211, .19);
+  border-radius: 9px; background: rgba(22, 43, 69, .48);
+  font: 800 11px 'DM Sans', sans-serif; font-variant-numeric: tabular-nums;
+}
+.mission-clock svg { color: #48dfc5; }
+.mission-clock small { color: #6f8ba9; font-size: 8px; font-weight: 800; letter-spacing: .9px; }
+.system-status {
+  color: #66e9cb; border-color: rgba(68, 220, 193, .22);
+  background: rgba(20, 116, 103, .13);
+}
+.map-frame button:focus-visible { outline: 2px solid #5df3d7; outline-offset: 2px; }
+.metric-clickable:focus-visible { outline: 2px solid #4ee5cf; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .mission-clock { gap: 5px; padding: 7px 8px; }
+  .mission-clock small { display: none; }
+  .top-actions { gap: 7px; }
+  .system-status { padding: 6px 7px; }
+}
+@media (max-width: 420px) {
+  .mission-clock { display: none; }
+  .system-status { font-size: 8px; letter-spacing: .2px; }
+}
