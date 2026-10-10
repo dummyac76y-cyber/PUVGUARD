@@ -24,6 +24,7 @@ export default function LiveMap({ points, onSelect, height = 440 }: Props) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapMessage, setMapMessage] = useState('Loading map…');
   const [weatherEnabled, setWeatherEnabled] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     if (!container.current || mapRef.current) return;
@@ -38,6 +39,7 @@ export default function LiveMap({ points, onSelect, height = 440 }: Props) {
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     map.on('load', () => {
+      setMapReady(true);
       setMapMessage('Map ready · positions are from the selected records');
       const id = import.meta.env.VITE_XWEATHER_CLIENT_ID;
       const secret = import.meta.env.VITE_XWEATHER_CLIENT_SECRET;
@@ -70,7 +72,7 @@ export default function LiveMap({ points, onSelect, height = 440 }: Props) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!mapReady || !map || !map.isStyleLoaded()) return;
     const markers: maplibregl.Marker[] = [];
     points.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180)
       .forEach(point => {
@@ -89,7 +91,7 @@ export default function LiveMap({ points, onSelect, height = 440 }: Props) {
         markers.push(new maplibregl.Marker({ element: el }).setLngLat([point.lon, point.lat]).setPopup(popup).addTo(map));
       });
     return () => markers.forEach(marker => marker.remove());
-  }, [points, onSelect]);
+  }, [points, onSelect, mapReady]);
 
   return (
     <div className="map-frame">
