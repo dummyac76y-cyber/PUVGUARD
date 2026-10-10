@@ -2266,3 +2266,68 @@ body::before { z-index: 0; }
   .mission-clock { display: none; }
   .system-status { font-size: 8px; letter-spacing: .2px; }
 }
+
+
+/* Dynamic gradient field: distinct animated layers with different palettes */
+body::before {
+  inset: -38%;
+  background:
+    radial-gradient(ellipse at 16% 28%, rgba(255, 69, 142, .27), transparent 31%),
+    radial-gradient(ellipse at 77% 18%, rgba(58, 121, 255, .28), transparent 30%),
+    radial-gradient(ellipse at 62% 78%, rgba(255, 169, 58, .19), transparent 32%),
+    radial-gradient(ellipse at 18% 82%, rgba(32, 226, 198, .20), transparent 29%),
+    radial-gradient(ellipse at 48% 50%, rgba(156, 80, 255, .17), transparent 37%);
+  background-size: 145% 145%, 160% 160%, 135% 135%, 170% 170%, 150% 150%;
+  animation: pg-color-orbit 11s ease-in-out infinite alternate;
+  will-change: transform, background-position;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .30;
+  background:
+    repeating-linear-gradient(118deg, transparent 0 80px, rgba(77, 230, 211, .09) 81px, transparent 83px 145px),
+    repeating-linear-gradient(28deg, transparent 0 130px, rgba(114, 137, 255, .08) 131px, transparent 133px 205px);
+  background-size: 190% 190%, 220% 220%;
+  animation: pg-stripe-sweep 8s linear infinite, pg-stripe-breathe 5.5s ease-in-out infinite alternate;
+}
+@keyframes pg-color-orbit {
+  0% { transform: translate3d(-3%, -2%, 0) rotate(-2deg) scale(1); background-position: 0% 20%, 100% 0%, 85% 100%, 0% 100%, 45% 35%; }
+  35% { transform: translate3d(2%, 1%, 0) rotate(1deg) scale(1.05); background-position: 95% 80%, 15% 90%, 0% 15%, 100% 30%, 70% 100%; }
+  68% { transform: translate3d(-1%, 3%, 0) rotate(-1deg) scale(1.08); background-position: 35% 100%, 60% 15%, 100% 55%, 25% 0%, 0% 65%; }
+  100% { transform: translate3d(3%, -2%, 0) rotate(2deg) scale(1.03); background-position: 100% 30%, 0% 70%, 20% 0%, 90% 100%, 100% 0%; }
+}
+@keyframes pg-stripe-sweep {
+  0% { transform: translate3d(-5%, -3%, 0); background-position: 0% 0%, 100% 0%; }
+  100% { transform: translate3d(5%, 3%, 0); background-position: 100% 100%, 0% 100%; }
+}
+@keyframes pg-stripe-breathe {
+  0% { opacity: .15; }
+  100% { opacity: .37; }
+}
+.shell, .sidebar, .main, .topbar, .modal { position: relative; }
+.shell, .sidebar, .main, .topbar, .content, .modal { z-index: 1; }
+.geo-marker {
+  border-radius: 50% !important;
+  border: 2px solid rgba(239, 249, 255, .92);
+  color: #fff !important;
+  background: rgba(8, 20, 36, .94) !important;
+  box-shadow: 0 0 0 3px rgba(8, 20, 36, .72), 0 0 16px currentColor !important;
+  overflow: visible;
+}
+.geo-marker svg { display: block; flex: 0 0 auto; }
+.geo-marker-critical { color: #ff5d75 !important; border-color: #ff8293; animation: pg-marker-pulse 1.6s ease-in-out infinite; }
+.geo-marker-assistance { color: #ffbd63 !important; border-color: #ffcf86; }
+.geo-marker-unit { color: #45e6c1 !important; border-color: #67f5d4; }
+.geo-marker-responder { color: #76b4ff !important; border-color: #9dcaff; }
+.geo-marker-critical svg, .geo-marker-assistance svg, .geo-marker-unit svg, .geo-marker-responder svg { stroke: currentColor; }
+.geo-marker-critical { box-shadow: 0 0 0 3px rgba(8,20,36,.76), 0 0 19px rgba(255,93,117,.45) !important; }
+.geo-marker-assistance { box-shadow: 0 0 0 3px rgba(8,20,36,.76), 0 0 17px rgba(255,189,99,.34) !important; }
+.geo-marker-unit { box-shadow: 0 0 0 3px rgba(8,20,36,.76), 0 0 17px rgba(69,230,193,.36) !important; }
+.geo-marker-responder { box-shadow: 0 0 0 3px rgba(8,20,36,.76), 0 0 17px rgba(118,180,255,.36) !important; }
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after, .geo-marker-critical { animation: none !important; }
+}
