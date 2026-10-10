@@ -2308,8 +2308,12 @@ body::after {
   0% { opacity: .15; }
   100% { opacity: .37; }
 }
-.shell, .sidebar, .main, .topbar, .modal { position: relative; }
-.shell, .sidebar, .main, .topbar, .content, .modal { z-index: 1; }
+/* Keep fixed navigation and sticky toolbar out of normal document flow.
+   Previously the shared position:relative rule pushed the main content below the full-height sidebar. */
+.shell, .main, .content, .modal { position: relative; z-index: 1; }
+.sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; }
+.topbar { position: sticky; top: 0; z-index: 10; }
+.scrim { z-index: 19; }
 .geo-marker {
   border-radius: 50% !important;
   border: 2px solid rgba(239, 249, 255, .92);
