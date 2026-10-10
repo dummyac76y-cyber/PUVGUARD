@@ -47,6 +47,74 @@ const haversineKm = (a:{lat:number;lon:number}, b:{lat:number;lon:number}) => {
 };
 const fmtTime = (value:string) => new Date(value).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
+
+function DashboardCharts({ incidents }: { incidents: Incident[] }) {
+  const now = new Date();
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
+    date.setDate(now.getDate() - (6 - index));
+    date.setHours(0, 0, 0, 0);
+    const next = new Date(date);
+    next.setDate(date.getDate() + 1);
+    return {
+      key: date.toISOString().slice(0, 10),
+      label: date.toLocaleDateString([], { weekday: 'short' }),
+      count: incidents.filter((incident) => {
+        const created = new Date(incident.createdAt).getTime();
+        return created >= date.getTime() && created < next.getTime();
+      }).length,
+    };
+  });
+  const maxCount = Math.max(1, ...days.map((day) => day.count));
+  const points = days.map((day, index) => {
+    const x = 28 + index * 54;
+    const y = 112 - (day.count / maxCount) * 78;
+    return { ...day, x, y };
+  });
+  const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+  const priorities = [
+    { label: 'Critical', count: incidents.filter((i) => i.priority === 'Critical' && i.status !== 'Resolved').length, tone: 'critical' },
+    { label: 'High', count: incidents.filter((i) => i.priority === 'High' && i.status !== 'Resolved').length, tone: 'high' },
+    { label: 'Medium', count: incidents.filter((i) => i.priority === 'Medium' && i.status !== 'Resolved').length, tone: 'medium' },
+  ];
+  const statuses = [
+    { label: 'New', count: incidents.filter((i) => i.status === 'New').length, tone: 'new' },
+    { label: 'Acknowledged', count: incidents.filter((i) => i.status === 'Acknowledged').length, tone: 'ack' },
+    { label: 'Dispatched', count: incidents.filter((i) => i.status === 'Dispatched').length, tone: 'dispatched' },
+    { label: 'Resolved', count: incidents.filter((i) => i.status === 'Resolved').length, tone: 'resolved' },
+  ];
+  const maxStatus = Math.max(1, ...statuses.map((item) => item.count));
+  return <section className="analytics-grid" aria-label="Incident analytics">
+    <article className="chart-card chart-trend">
+      <div className="chart-card-head"><div><span className="chart-kicker">ACTIVITY</span><h2>Incident trend</h2><p>Events recorded over the last 7 days</p></div><span className="chart-symbol"><Activity size={18}/></span></div>
+      <div className="chart-total"><strong>{incidents.length}</strong><span>Total recorded events</span></div>
+      <div className="line-chart-wrap">
+        <svg className="trend-chart" viewBox="0 0 390 154" role="img" aria-label="Line chart of incident counts by day">
+          <defs><linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#22c7a5" stopOpacity=".28"/><stop offset="100%" stopColor="#22c7a5" stopOpacity="0"/></linearGradient></defs>
+          {[34, 73, 112].map((y) => <line key={y} x1="22" x2="368" y1={y} y2={y} className="chart-grid-line"/>)}
+          <path d={`${path} L 352 126 L 28 126 Z`} fill="url(#trendFill)" transform="translate(0 -4)"/>
+          <path d={path} className="chart-line"/>
+          {points.map((point) => <g key={point.key}><circle cx={point.x} cy={point.y} r="4" className="chart-point"/><text x={point.x} y="145" className="chart-axis-label" textAnchor="middle">{point.label}</text></g>)}
+        </svg>
+      </div>
+      <div className="chart-footnote"><span><i className="chart-legend-dot"/> Events by creation date</span><span>Local prototype data</span></div>
+    </article>
+    <article className="chart-card">
+      <div className="chart-card-head"><div><span className="chart-kicker">RISK PROFILE</span><h2>Active priority levels</h2><p>Unresolved incidents by priority</p></div><span className="chart-symbol chart-symbol-alert"><ShieldAlert size={18}/></span></div>
+      <div className="priority-chart">
+        <div className="priority-donut" style={{ background: `conic-gradient(#ef5967 0 ${(priorities[0].count / Math.max(1, priorities.reduce((sum, item) => sum + item.count, 0))) * 100}%, #f3ad4f 0 ${((priorities[0].count + priorities[1].count) / Math.max(1, priorities.reduce((sum, item) => sum + item.count, 0))) * 100}%, #4e9ce8 0 100%)` }}><div><strong>{priorities.reduce((sum, item) => sum + item.count, 0)}</strong><small>ACTIVE</small></div></div>
+        <div className="priority-legend">{priorities.map((item) => <div key={item.label}><span className={'legend-swatch '+item.tone}/><span>{item.label}</span><strong>{item.count}</strong></div>)}</div>
+      </div>
+      <div className="chart-footnote"><span>Priority mix</span><span>Verify before action</span></div>
+    </article>
+    <article className="chart-card chart-status-card">
+      <div className="chart-card-head"><div><span className="chart-kicker">RESPONSE PIPELINE</span><h2>Incident status</h2><p>Current workflow distribution</p></div><span className="chart-symbol chart-symbol-status"><CheckCircle2 size={18}/></span></div>
+      <div className="status-bars">{statuses.map((item) => <div className="status-bar-row" key={item.label}><div className="status-bar-label"><span>{item.label}</span><strong>{item.count}</strong></div><div className="status-bar-track"><span className={'status-bar-fill '+item.tone} style={{ width: `${(item.count / maxStatus) * 100}%` }}/></div></div>)}</div>
+      <div className="chart-footnote"><span>Workflow status</span><span>Browser-stored records</span></div>
+    </article>
+  </section>;
+}
+
 function App() {
   const [page,setPage]=useState('Overview');
   const [units,setUnits]=useState<Unit[]>(()=>readStore('puvguard_units_v2',seedUnits));
@@ -157,6 +225,7 @@ function App() {
           <div className="metric-card"><div className="metric-top"><span>ACTIVE INCIDENTS</span><span className="metric-icon red"><Siren size={18}/></span></div><div className="metric-value">{incidents.filter(i=>i.status!=='Resolved').length}<span className="metric-trend">Unresolved</span></div><div className="metric-foot"><span className="status-dot status-red"/> Verify every alert</div></div>
           <div className="metric-card"><div className="metric-top"><span>AVAILABLE CONTACTS</span><span className="metric-icon amber"><Users size={18}/></span></div><div className="metric-value">{responders.filter(r=>r.available).length}<span className="metric-trend">Responder directory</span></div><div className="metric-foot">Confirm official details</div></div>
         </section>
+        <DashboardCharts incidents={incidents}/>
         <section className="panel map-panel"><div className="panel-heading"><div><h2>Incident and unit map</h2><p>Selectable incident, vehicle and responder markers.</p></div><button className="text-button" onClick={()=>setPage('Live map')}>Open full map <ExternalLink size={13}/></button></div><LiveMap points={points}/><div className="map-bottom"><span><i className="legend-red"/> Critical incident</span><span><i className="legend-amber"/> Assistance / other incident</span><span><i className="legend-green"/> Registered unit</span><span>R = responder/contact</span></div></section>
         {incidentPanel(false)}
         {selected&&<section className="panel detail-panel"><div className="detail-head"><div><div className="eyebrow">SELECTED INCIDENT</div><h2>{selected.id} <span className={'priority priority-'+selected.priority.toLowerCase()}><i/>{selected.priority}</span></h2><p>{selected.details}</p></div><span className={'status-tag status-'+selected.status.toLowerCase()}>{selected.status}</span></div><div className="detail-grid"><div><small>VEHICLE / DRIVER</small><b><Bike size={15}/>{selectedUnit?.name??selected.unitId}</b><small>{selectedUnit?.kind} · {selectedUnit?.plate} · {selectedUnit?.driver}</small></div><div><small>EVENT TYPE</small><b><AlertTriangle size={15}/>{selected.kind}</b></div><div><small>INCIDENT LOCATION</small><b><MapPin size={15}/>{selected.location}</b><small>{selected.lat.toFixed(5)}, {selected.lon.toFixed(5)}</small></div><div><small>EVENT TIME</small><b><Clock3 size={15}/>{fmtTime(selected.createdAt)}</b></div></div><div className="detail-actions"><span><ShieldAlert size={15}/> Prototype action only. Verify the event and use official emergency procedures.</span><div>{selected.status==='New'&&<button className="button button-secondary" onClick={()=>acknowledge(selected.id)}>Acknowledge</button>}<button className="button button-primary" onClick={()=>setDispatchTarget(selected)}><Navigation size={15}/> Find nearest responder</button></div></div></section>}
